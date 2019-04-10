@@ -27,4 +27,29 @@ class ListProductModelsQuery
 
     /** @var string */
     public $channel;
+
+    /** @var string */
+    public $searchAfter;
+
+    /** @var string[] */
+    public $locales;
+
+    /** @var array */
+    public $search = [];
+
+    /** @var string */
+    public $searchLocale;
+
+    /** @var string[] */
+    public $attributes;
+
+    /**
+     * Returns the parameter 'with_count' typed as a boolean
+     *
+     * @return bool
+     */
+    public function withCountAsBoolean(): bool
+    {
+        return $this->withCount === 'true';
+    }
 }

@@ -18,12 +18,27 @@ class ListProductModelsQueryValidator
     /** @var ValidateChannel */
     private $validateChannel;
 
+    /** @var ValidateLocales */
+    private $validateLocales;
+
+    /** @var ValidateSearchLocale */
+    private $validateSearchLocales;
+
+    /** @var ValidateAttributes */
+    private $validateAttributes;
+
     public function __construct(
         ValidatePagination $validatePagination,
-        ValidateChannel $validateChannel
+        ValidateChannel $validateChannel,
+        ValidateLocales $validateLocales,
+        ValidateSearchLocale $validateSearchLocales,
+        ValidateAttributes $validateAttributes
     ) {
         $this->validatePagination = $validatePagination;
         $this->validateChannel = $validateChannel;
+        $this->validateLocales = $validateLocales;
+        $this->validateSearchLocales = $validateSearchLocales;
+        $this->validateAttributes = $validateAttributes;
     }
 
     /**
@@ -37,6 +52,9 @@ class ListProductModelsQueryValidator
             $query->limit,
             $query->withCount
         );
+        $this->validateAttributes->validate($query->attributes);
         $this->validateChannel->validate($query->channel);
+        $this->validateLocales->validate($query->locales, $query->channel);
+        $this->validateSearchLocales->validate($query->search, $query->searchLocale);
     }
 }
