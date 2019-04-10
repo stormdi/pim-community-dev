@@ -12,8 +12,8 @@ use Akeneo\Tool\Component\Api\Exception\InvalidQueryException;
  */
 class ListProductModelsQueryValidator
 {
-    /** @var ValidatePagination */
-    private $validatePagination;
+    /** @var ValidateAttributes */
+    private $validateAttributes;
 
     /** @var ValidateChannel */
     private $validateChannel;
@@ -21,27 +21,69 @@ class ListProductModelsQueryValidator
     /** @var ValidateLocales */
     private $validateLocales;
 
+    /** @var ValidatePagination */
+    private $validatePagination;
+
+    /** @var ValidateCriterion */
+    private $validateCriterion;
+
+    /** @var ValidateCategories */
+    private $validateCategories;
+
+    /** @var ValidateProperties */
+    private $validateProperties;
+
     /** @var ValidateSearchLocale */
     private $validateSearchLocales;
 
-    /** @var ValidateAttributes */
-    private $validateAttributes;
+    /** @var ValidateGrantedSearchLocaleInterface */
+    private $validateGrantedSearchLocales;
+
+    /** @var ValidateGrantedCategoriesInterface */
+    private $validateGrantedCategories;
+
+    /** @var ValidateGrantedPropertiesInterface */
+    private $validateGrantedProperties;
+
+    /** @var ValidateGrantedAttributesInterface */
+    private $validateGrantedAttributes;
+
+    /** @var ValidateGrantedLocalesInterface */
+    private $validateGrantedLocales;
 
     public function __construct(
-        ValidatePagination $validatePagination,
+        ValidateAttributes $validateAttributes,
         ValidateChannel $validateChannel,
         ValidateLocales $validateLocales,
+        ValidatePagination $validatePagination,
+        ValidateCriterion $validateCriterion,
+        ValidateCategories $validateCategories,
+        ValidateProperties $validateProperties,
         ValidateSearchLocale $validateSearchLocales,
-        ValidateAttributes $validateAttributes
+        ValidateGrantedSearchLocaleInterface $validateGrantedSearchLocales,
+        ValidateGrantedCategoriesInterface $validateGrantedCategories,
+        ValidateGrantedPropertiesInterface $validateGrantedProperties,
+        ValidateGrantedAttributesInterface $validateGrantedAttributes,
+        ValidateGrantedLocalesInterface $validateGrantedLocales
     ) {
-        $this->validatePagination = $validatePagination;
+        $this->validateAttributes = $validateAttributes;
         $this->validateChannel = $validateChannel;
         $this->validateLocales = $validateLocales;
+        $this->validatePagination = $validatePagination;
+        $this->validateCriterion = $validateCriterion;
+        $this->validateCategories = $validateCategories;
+        $this->validateProperties = $validateProperties;
         $this->validateSearchLocales = $validateSearchLocales;
-        $this->validateAttributes = $validateAttributes;
+        $this->validateGrantedSearchLocales = $validateGrantedSearchLocales;
+        $this->validateGrantedCategories = $validateGrantedCategories;
+        $this->validateGrantedProperties = $validateGrantedProperties;
+        $this->validateGrantedAttributes = $validateGrantedAttributes;
+        $this->validateGrantedLocales = $validateGrantedLocales;
     }
 
     /**
+     * @param ListProductModelsQuery $query
+     *
      * @throws InvalidQueryException
      */
     public function validate(ListProductModelsQuery $query): void
@@ -53,8 +95,16 @@ class ListProductModelsQueryValidator
             $query->withCount
         );
         $this->validateAttributes->validate($query->attributes);
+        $this->validateGrantedAttributes->validate($query->attributes);
         $this->validateChannel->validate($query->channel);
         $this->validateLocales->validate($query->locales, $query->channel);
+        $this->validateCriterion->validate($query->search);
+        $this->validateCategories->validate($query->search);
+        $this->validateGrantedCategories->validate($query->search);
+        $this->validateProperties->validate($query->search);
+        $this->validateGrantedProperties->validate($query->search);
         $this->validateSearchLocales->validate($query->search, $query->searchLocale);
+        $this->validateGrantedLocales->validateForLocaleCodes($query->locales);
+        $this->validateGrantedSearchLocales->validate($query->search, $query->searchLocale);
     }
 }

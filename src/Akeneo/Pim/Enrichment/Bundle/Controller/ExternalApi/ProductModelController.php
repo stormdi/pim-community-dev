@@ -465,7 +465,7 @@ class ProductModelController
             try {
                 $count = $query->withCountAsBoolean() ? $productModels->count() : null;
 
-                return $this->offsetP²aginator->paginate(
+                return $this->offsetPaginator->paginate(
                     $this->normalizer->normalize($productModels, 'external_api', $normalizerOptions),
                     $paginationParameters,
                     $count
