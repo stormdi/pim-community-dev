@@ -12,7 +12,6 @@ use Akeneo\Pim\Enrichment\Component\Product\Model\ProductModelInterface;
 use Akeneo\Pim\Enrichment\Component\Product\ProductModel\Filter\AttributeFilterInterface;
 use Akeneo\Pim\Enrichment\Component\Product\Query\Filter\Operators;
 use Akeneo\Pim\Enrichment\Component\Product\Query\ProductQueryBuilderFactoryInterface;
-use Akeneo\Pim\Enrichment\Component\Product\Query\ProductQueryBuilderInterface;
 use Akeneo\Pim\Enrichment\Component\Product\Repository\ProductModelRepositoryInterface;
 use Akeneo\Tool\Bundle\ApiBundle\Checker\QueryParametersCheckerInterface;
 use Akeneo\Tool\Bundle\ApiBundle\Documentation;
@@ -22,7 +21,6 @@ use Akeneo\Tool\Component\Api\Exception\InvalidQueryException;
 use Akeneo\Tool\Component\Api\Exception\ViolationHttpException;
 use Akeneo\Tool\Component\Api\Pagination\PaginationTypes;
 use Akeneo\Tool\Component\Api\Pagination\PaginatorInterface;
-use Akeneo\Tool\Component\Api\Pagination\ParameterValidatorInterface;
 use Akeneo\Tool\Component\Api\Security\PrimaryKeyEncrypter;
 use Akeneo\Tool\Component\StorageUtils\Cursor\CursorInterface;
 use Akeneo\Tool\Component\StorageUtils\Exception\PropertyException;
@@ -55,9 +53,6 @@ class ProductModelController
     protected $pqbFactory;
 
     /** @var ProductQueryBuilderFactoryInterface */
-    protected $pqbFromSizeFactory;
-
-    /** @var ProductQueryBuilderFactoryInterface */
     protected $pqbSearchAfterFactory;
 
     /** @var NormalizerInterface */
@@ -65,9 +60,6 @@ class ProductModelController
 
     /** @var IdentifiableObjectRepositoryInterface */
     protected $channelRepository;
-
-    /** @var ParameterValidatorInterface */
-    protected $parameterValidator;
 
     /** @var PaginatorInterface */
     protected $offsetPaginator;
@@ -94,7 +86,7 @@ class ProductModelController
     protected $router;
 
     /** @var ValidatorInterface */
-    protected $productValidator;
+    protected $productModelValidator;
 
     /** @var AttributeFilterInterface */
     protected $productModelAttributeFilter;
@@ -116,12 +108,9 @@ class ProductModelController
 
     public function __construct(
         ProductQueryBuilderFactoryInterface $pqbFactory,
-        ProductQueryBuilderFactoryInterface $pqbFromSizeFactory,
         ProductQueryBuilderFactoryInterface $pqbSearchAfterFactory,
         NormalizerInterface $normalizer,
         IdentifiableObjectRepositoryInterface $channelRepository,
-        QueryParametersCheckerInterface $queryParametersChecker,
-        ParameterValidatorInterface $parameterValidator,
         PaginatorInterface $offsetPaginator,
         PaginatorInterface $searchAfterPaginator,
         PrimaryKeyEncrypter $primaryKeyEncrypter,
@@ -129,7 +118,7 @@ class ProductModelController
         SimpleFactoryInterface $factory,
         SaverInterface $saver,
         UrlGeneratorInterface $router,
-        ValidatorInterface $productValidator,
+        ValidatorInterface $productModelValidator,
         AttributeFilterInterface $productModelAttributeFilter,
         IdentifiableObjectRepositoryInterface $productModelRepository,
         StreamResourceResponse $partialUpdateStreamResource,
@@ -138,20 +127,17 @@ class ProductModelController
         array $apiConfiguration
     ) {
         $this->pqbFactory = $pqbFactory;
-        $this->pqbFromSizeFactory = $pqbFromSizeFactory;
         $this->pqbSearchAfterFactory = $pqbSearchAfterFactory;
         $this->normalizer = $normalizer;
         $this->channelRepository = $channelRepository;
-        $this->queryParametersChecker = $queryParametersChecker;
-        $this->parameterValidator = $parameterValidator;
-        $this->offsetPaginator  = $offsetPaginator;
+        $this->offsetPaginator = $offsetPaginator;
         $this->searchAfterPaginator = $searchAfterPaginator;
         $this->primaryKeyEncrypter = $primaryKeyEncrypter;
         $this->updater = $updater;
         $this->factory = $factory;
         $this->saver = $saver;
         $this->router = $router;
-        $this->productValidator = $productValidator;
+        $this->productModelValidator = $productModelValidator;
         $this->productModelAttributeFilter = $productModelAttributeFilter;
         $this->productModelRepository = $productModelRepository;
         $this->partialUpdateStreamResource = $partialUpdateStreamResource;
@@ -423,7 +409,7 @@ class ProductModelController
      */
     protected function validateProductModel(ProductModelInterface $productModel): void
     {
-        $violations = $this->productValidator->validate($productModel, null, ['Default', 'api']);
+        $violations = $this->productModelValidator->validate($productModel, null, ['Default', 'api']);
         if (0 !== $violations->count()) {
             throw new ViolationHttpException($violations);
         }
