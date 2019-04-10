@@ -21,6 +21,9 @@ use Akeneo\Tool\Component\StorageUtils\Exception\PropertyException;
  */
 class ListProductModelsQueryHandler
 {
+    /** @var ApplyProductSearchQueryParametersToPQB */
+    private $applyProductSearchQueryParametersToPQB;
+
     /** @var ProductQueryBuilderFactoryInterface */
     private $fromSizePqbFactory;
 
@@ -31,10 +34,12 @@ class ListProductModelsQueryHandler
     private $primaryKeyEncrypter;
 
     public function __construct(
+        ApplyProductSearchQueryParametersToPQB $applyProductSearchQueryParametersToPQB,
         ProductQueryBuilderFactoryInterface $fromSizePqbFactory,
         ProductQueryBuilderFactoryInterface $searchAfterPqbFactory,
         PrimaryKeyEncrypter $primaryKeyEncrypter
     ) {
+        $this->applyProductSearchQueryParametersToPQB = $applyProductSearchQueryParametersToPQB;
         $this->fromSizePqbFactory = $fromSizePqbFactory;
         $this->searchAfterPqbFactory = $searchAfterPqbFactory;
         $this->primaryKeyEncrypter = $primaryKeyEncrypter;
@@ -45,7 +50,13 @@ class ListProductModelsQueryHandler
         $pqb = $this->getSearchPQB($query);
 
         try {
-            //$this->applyProductSearchQueryParametersToPQB->apply($pqb, $query);
+            $this->applyProductSearchQueryParametersToPQB->apply(
+                $pqb,
+                $query->search,
+                $query->channel,
+                $query->searchLocale,
+                $query->searchScope
+            );
         } catch (
         UnsupportedFilterException
         | PropertyException

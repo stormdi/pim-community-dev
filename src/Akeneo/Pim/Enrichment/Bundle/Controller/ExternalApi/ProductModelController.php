@@ -7,17 +7,12 @@ namespace Akeneo\Pim\Enrichment\Bundle\Controller\ExternalApi;
 use Akeneo\Channel\Component\Model\ChannelInterface;
 use Akeneo\Pim\Enrichment\Component\Product\Connector\UseCase\ListProductModelsQuery;
 use Akeneo\Pim\Enrichment\Component\Product\Connector\UseCase\ListProductModelsQueryHandler;
-use Akeneo\Pim\Enrichment\Component\Product\Connector\UseCase\ListProductsQuery;
 use Akeneo\Pim\Enrichment\Component\Product\Connector\UseCase\Validator\ListProductModelsQueryValidator;
-use Akeneo\Pim\Enrichment\Component\Product\Exception\InvalidOperatorException;
-use Akeneo\Pim\Enrichment\Component\Product\Exception\ObjectNotFoundException;
-use Akeneo\Pim\Enrichment\Component\Product\Exception\UnsupportedFilterException;
 use Akeneo\Pim\Enrichment\Component\Product\Model\ProductModelInterface;
 use Akeneo\Pim\Enrichment\Component\Product\ProductModel\Filter\AttributeFilterInterface;
 use Akeneo\Pim\Enrichment\Component\Product\Query\Filter\Operators;
 use Akeneo\Pim\Enrichment\Component\Product\Query\ProductQueryBuilderFactoryInterface;
 use Akeneo\Pim\Enrichment\Component\Product\Query\ProductQueryBuilderInterface;
-use Akeneo\Pim\Enrichment\Component\Product\Query\Sorter\Directions;
 use Akeneo\Pim\Enrichment\Component\Product\Repository\ProductModelRepositoryInterface;
 use Akeneo\Tool\Bundle\ApiBundle\Checker\QueryParametersCheckerInterface;
 use Akeneo\Tool\Bundle\ApiBundle\Documentation;
@@ -270,11 +265,7 @@ class ProductModelController
         $query->channel = $request->query->get('scope', null);
         $query->searchAfter = $request->query->get('search_after', null);
         $query->searchLocale = $request->query->get('search_locale', null);
-        //$query->searchScope = $request->query->get('search_scope', null);
-
-        if (null === $query->search) {
-            throw new BadRequestHttpException('Search query parameter should be valid JSON.');
-        }
+        $query->searchScope = $request->query->get('search_scope', null);
 
         try {
             $this->listProductModelsQueryValidator->validate($query);
@@ -438,83 +429,6 @@ class ProductModelController
         }
     }
 
-    /**
-     * Set the PQB filters.
-     * If a scope is requested, add a filter to return only product models linked to its category tree
-     *
-     * @param ProductQueryBuilderInterface $pqb
-     * @param Request                      $request
-     * @param ChannelInterface|null        $channel
-     *
-     * @throws UnprocessableEntityHttpException
-     */
-    protected function setPQBFilters(
-        ProductQueryBuilderInterface $pqb,
-        Request $request,
-        ?ChannelInterface $channel
-    ): void {
-        $searchParameters = [];
-
-        if ($request->query->has('search')) {
-            $searchString = $request->query->get('search', '');
-            $searchParameters = $this->queryParametersChecker->checkCriterionParameters($searchString);
-
-            if (isset($searchParameters['categories'])) {
-                $this->queryParametersChecker->checkCategoriesParameters($searchParameters['categories']);
-            }
-        }
-
-        if (null !== $channel && !isset($searchParameters['categories'])) {
-            $searchParameters['categories'] = [
-                [
-                    'operator' => Operators::IN_CHILDREN_LIST,
-                    'value'    => [$channel->getCategory()->getCode()]
-                ]
-            ];
-        }
-
-        foreach ($searchParameters as $propertyCode => $filters) {
-            foreach ($filters as $filter) {
-                $searchLocale = $request->query->get('search_locale');
-                $context['locale'] = isset($filter['locale']) ? $filter['locale'] : $searchLocale;
-
-                if (null !== $context['locale'] && is_string($context['locale'])) {
-                    $locales = explode(',', $context['locale']);
-                    $this->queryParametersChecker->checkLocalesParameters($locales);
-                }
-
-                $context['scope'] = isset($filter['scope']) ? $filter['scope'] : $request->query->get('search_scope');
-
-                if (isset($filter['locales']) && '' !== $filter['locales']) {
-                    $context['locales'] = $filter['locales'];
-
-                    $this->queryParametersChecker->checkLocalesParameters(
-                        !is_array($context['locales']) ? [$context['locales']] : $context['locales']
-                    );
-                }
-
-                $value = isset($filter['value']) ? $filter['value'] : null;
-
-                if (in_array($propertyCode, ['created', 'updated'])) {
-                    if (Operators::BETWEEN === $filter['operator'] && is_array($value)) {
-                        $values = [];
-                        foreach ($value as $date) {
-                            $values[] = \DateTime::createFromFormat('Y-m-d H:i:s', $date);
-                        }
-                        $value = $values;
-                    } else {
-                        //PIM-7541 Create the date with the server timezone configuration. Do not force it to UTC timezone.
-                        $value = \DateTime::createFromFormat('Y-m-d H:i:s', $value);
-                    }
-                }
-
-                $this->queryParametersChecker->checkPropertyParameters($propertyCode, $filter['operator']);
-
-                $pqb->addFilter($propertyCode, $filter['operator'], $value, $context);
-            }
-        }
-    }
-
     private function normalizeProductModelsList(CursorInterface $productModels, ListProductModelsQuery $query): array
     {
         $normalizerOptions = $this->getNormalizerOptions($query);
@@ -551,7 +465,7 @@ class ProductModelController
             try {
                 $count = $query->withCountAsBoolean() ? $productModels->count() : null;
 
-                return $this->offsetPaginator->paginate(
+                return $this->offsetP²aginator->paginate(
                     $this->normalizer->normalize($productModels, 'external_api', $normalizerOptions),
                     $paginationParameters,
                     $count

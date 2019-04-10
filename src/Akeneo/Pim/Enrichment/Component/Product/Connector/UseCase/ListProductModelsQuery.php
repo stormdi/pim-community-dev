@@ -43,6 +43,9 @@ class ListProductModelsQuery
     /** @var string[] */
     public $attributes;
 
+    /** @var string */
+    public $searchScope;
+
     /**
      * Returns the parameter 'with_count' typed as a boolean
      *

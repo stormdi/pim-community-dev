@@ -62,7 +62,13 @@ final class ListProductsQueryHandler
         $pqb = $this->getSearchPQB($query);
 
         try {
-            $this->applyProductSearchQueryParametersToPQB->apply($pqb, $query);
+            $this->applyProductSearchQueryParametersToPQB->apply(
+                $pqb,
+                $query->search,
+                $query->channel,
+                $query->searchLocale,
+                $query->searchScope
+            );
         } catch (
         UnsupportedFilterException
         | PropertyException
