@@ -28,6 +28,7 @@ services:
         class: Akeneo\Pim\Enrichment\Component\Product\Connector\UseCase\Validator\ListProductModelsQueryValidator
         arguments:
             - '@akeneo.pim.enrichment.use_cases.validator.pagination'
+            - '@akeneo.pim.enrichment.use_cases.validator.channel'
 
     akeneo.pim.enrichment.use_cases.apply_product_search_query_parameters_to_pqb:
         class: 'Akeneo\Pim\Enrichment\Component\Product\Connector\UseCase\ApplyProductSearchQueryParametersToPQB'

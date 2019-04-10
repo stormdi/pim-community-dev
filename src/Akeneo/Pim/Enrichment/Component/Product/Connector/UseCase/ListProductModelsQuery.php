@@ -24,4 +24,7 @@ class ListProductModelsQuery
 
     /** @var string */
     public $withCount = 'false';
+
+    /** @var string */
+    public $channel;
 }

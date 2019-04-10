@@ -246,24 +246,11 @@ class ProductModelController
         $query->page = $request->query->get('page', 1);
         $query->limit = $request->query->get('limit', $this->apiConfiguration['pagination']['limit_by_default']);
         $query->withCount = $request->query->get('with_count', 'false');
+        $query->channel = $request->query->get('scope', null);
 
         $this->listProductModelsQueryValidator->validate($query);
 
-//        try {
-//            $this->parameterValidator->validate($request->query->all(), ['support_search_after' => true]);
-//        } catch (PaginationParametersException $e) {
-//            throw new UnprocessableEntityHttpException($e->getMessage(), $e);
-//        }
-
-        $channel = null;
-        if ($request->query->has('scope')) {
-            $channel = $this->channelRepository->findOneByIdentifier($request->query->get('scope'));
-            if (null === $channel) {
-                throw new UnprocessableEntityHttpException(
-                    sprintf('Scope "%s" does not exist.', $request->query->get('scope'))
-                );
-            }
-        }
+        $channel = $this->channelRepository->findOneByIdentifier($query->channel);
 
         $normalizerOptions = $this->getNormalizerOptions($request, $channel);
         $queryParameters = array_merge(

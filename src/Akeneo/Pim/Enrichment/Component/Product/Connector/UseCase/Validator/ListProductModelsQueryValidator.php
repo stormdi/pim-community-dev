@@ -15,10 +15,15 @@ class ListProductModelsQueryValidator
     /** @var ValidatePagination */
     private $validatePagination;
 
+    /** @var ValidateChannel */
+    private $validateChannel;
+
     public function __construct(
-        ValidatePagination $validatePagination
+        ValidatePagination $validatePagination,
+        ValidateChannel $validateChannel
     ) {
         $this->validatePagination = $validatePagination;
+        $this->validateChannel = $validateChannel;
     }
 
     /**
@@ -32,5 +37,6 @@ class ListProductModelsQueryValidator
             $query->limit,
             $query->withCount
         );
+        $this->validateChannel->validate($query->channel);
     }
 }
