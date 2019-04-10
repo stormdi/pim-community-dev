@@ -94,17 +94,17 @@ class ListProductModelsQueryValidator
             $query->limit,
             $query->withCount
         );
-        $this->validateAttributes->validate($query->attributes);
-        $this->validateGrantedAttributes->validate($query->attributes);
-        $this->validateChannel->validate($query->channel);
-        $this->validateLocales->validate($query->locales, $query->channel);
+        $this->validateAttributes->validate($query->attributeCodes);
+        $this->validateGrantedAttributes->validate($query->attributeCodes);
+        $this->validateChannel->validate($query->channelCode);
+        $this->validateLocales->validate($query->localeCodes, $query->channelCode);
         $this->validateCriterion->validate($query->search);
         $this->validateCategories->validate($query->search);
         $this->validateGrantedCategories->validate($query->search);
         $this->validateProperties->validate($query->search);
         $this->validateGrantedProperties->validate($query->search);
-        $this->validateSearchLocales->validate($query->search, $query->searchLocale);
-        $this->validateGrantedLocales->validateForLocaleCodes($query->locales);
-        $this->validateGrantedSearchLocales->validate($query->search, $query->searchLocale);
+        $this->validateSearchLocales->validate($query->search, $query->searchLocaleCode);
+        $this->validateGrantedLocales->validateForLocaleCodes($query->localeCodes);
+        $this->validateGrantedSearchLocales->validate($query->search, $query->searchLocaleCode);
     }
 }

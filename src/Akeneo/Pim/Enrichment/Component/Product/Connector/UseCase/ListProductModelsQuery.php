@@ -26,25 +26,25 @@ class ListProductModelsQuery
     public $withCount = 'false';
 
     /** @var string */
-    public $channel;
+    public $channelCode;
 
     /** @var string */
     public $searchAfter;
 
     /** @var string[] */
-    public $locales;
+    public $localeCodes;
 
     /** @var array */
     public $search = [];
 
     /** @var string */
-    public $searchLocale;
+    public $searchLocaleCode;
 
     /** @var string[] */
-    public $attributes;
+    public $attributeCodes;
 
     /** @var string */
-    public $searchScope;
+    public $searchChannelScope;
 
     /**
      * Returns the parameter 'with_count' typed as a boolean

@@ -53,9 +53,9 @@ class ListProductModelsQueryHandler
             $this->applyProductSearchQueryParametersToPQB->apply(
                 $pqb,
                 $query->search,
-                $query->channel,
-                $query->searchLocale,
-                $query->searchScope
+                $query->channelCode,
+                $query->searchLocaleCode,
+                $query->searchChannelScope
             );
         } catch (
         UnsupportedFilterException

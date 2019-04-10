@@ -34,8 +34,8 @@ final class ApplyProductSearchQueryParametersToPQB
      * @param ProductQueryBuilderInterface $pqb
      * @param array $search
      * @param string|null $channelCode
-     * @param string|null $searchLocale
-     * @param string|null $searchScope
+     * @param string|null $searchLocaleCode
+     * @param string|null $searchChannelCode
      *
      * @throws UnprocessableEntityHttpException
      */
@@ -43,8 +43,8 @@ final class ApplyProductSearchQueryParametersToPQB
         ProductQueryBuilderInterface $pqb,
         array $search,
         ?string $channelCode,
-        ?string $searchLocale,
-        ?string $searchScope
+        ?string $searchLocaleCode,
+        ?string $searchChannelCode
     ): void {
         $searchParameters = $search;
 
@@ -62,13 +62,13 @@ final class ApplyProductSearchQueryParametersToPQB
 
         foreach ($searchParameters as $propertyCode => $filters) {
             foreach ($filters as $filter) {
-                $context['locale'] = isset($filter['locale']) ? $filter['locale'] : $searchLocale;
+                $context['locale'] = isset($filter['locale']) ? $filter['locale'] : $searchLocaleCode;
 
                 if (isset($filter['locales']) && '' !== $filter['locales']) {
                     $context['locales'] = $filter['locales'];
                 }
 
-                $context['scope'] = isset($filter['scope']) ? $filter['scope'] : $searchScope;
+                $context['scope'] = isset($filter['scope']) ? $filter['scope'] : $searchChannelCode;
 
                 $value = isset($filter['value']) ? $filter['value'] : null;
 

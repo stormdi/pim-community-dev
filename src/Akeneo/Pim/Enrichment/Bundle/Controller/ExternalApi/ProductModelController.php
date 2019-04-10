@@ -233,25 +233,25 @@ class ProductModelController
         $query = new ListProductModelsQuery();
 
         if ($request->query->has('attributes')) {
-            $query->attributes = explode(',', $request->query->get('attributes'));
+            $query->attributeCodes = explode(',', $request->query->get('attributes'));
         }
         if ($request->query->has('locales')) {
-            $query->locales = explode(',', $request->query->get('locales'));
+            $query->localeCodes = explode(',', $request->query->get('locales'));
         }
         if ($request->query->has('search')) {
             $query->search = json_decode($request->query->get('search'), true);
-            if (null === $query->search) {
-                throw new BadRequestHttpException('Search query parameter should be valid JSON.');
+            if (!is_array($query->search)) {
+                throw new UnprocessableEntityHttpException('Search query parameter should be valid JSON.');
             }
         }
-        $query->paginationType = $request->query->get('pagination_type', PaginationTypes::OFFSET);
-        $query->page = $request->query->get('page', 1);
+        $query->channelCode = $request->query->get('scope', null);
         $query->limit = $request->query->get('limit', $this->apiConfiguration['pagination']['limit_by_default']);
+        $query->paginationType = $request->query->get('pagination_type', PaginationTypes::OFFSET);
+        $query->searchLocaleCode = $request->query->get('search_locale', null);
         $query->withCount = $request->query->get('with_count', 'false');
-        $query->channel = $request->query->get('scope', null);
+        $query->page = $request->query->get('page', 1);
+        $query->searchChannelCode = $request->query->get('search_scope', null);
         $query->searchAfter = $request->query->get('search_after', null);
-        $query->searchLocale = $request->query->get('search_locale', null);
-        $query->searchScope = $request->query->get('search_scope', null);
 
         try {
             $this->listProductModelsQueryValidator->validate($query);
@@ -288,19 +288,19 @@ class ProductModelController
     {
         $normalizerOptions = [];
 
-        if (null !== $query->channel) {
-            $channel = $this->channelRepository->findOneByIdentifier($query->channel);
+        if (null !== $query->channelCode) {
+            $channel = $this->channelRepository->findOneByIdentifier($query->channelCode);
 
             $normalizerOptions['channels'] = [$channel->getCode()];
             $normalizerOptions['locales'] = $channel->getLocaleCodes();
         }
 
-        if (null !== $query->locales) {
-            $normalizerOptions['locales'] = $query->locales;
+        if (null !== $query->localeCodes) {
+            $normalizerOptions['locales'] = $query->localeCodes;
         }
 
-        if (null !== $query->attributes) {
-            $normalizerOptions['attributes'] = $query->attributes;
+        if (null !== $query->attributeCodes) {
+            $normalizerOptions['attributes'] = $query->attributeCodes;
         }
 
         return $normalizerOptions;
@@ -428,14 +428,14 @@ class ProductModelController
         if ($query->search !== []) {
             $queryParameters['search'] = json_encode($query->search);
         }
-        if (null !== $query->channel) {
-            $queryParameters['scope'] = $query->channel;
+        if (null !== $query->channelCode) {
+            $queryParameters['scope'] = $query->channelCode;
         }
-        if (null !== $query->locales) {
-            $queryParameters['locales'] = join(',', $query->locales);
+        if (null !== $query->localeCodes) {
+            $queryParameters['locales'] = join(',', $query->localeCodes);
         }
-        if (null !== $query->attributes) {
-            $queryParameters['attributes'] = join(',', $query->attributes);
+        if (null !== $query->attributeCodes) {
+            $queryParameters['attributes'] = join(',', $query->attributeCodes);
         }
 
         if (PaginationTypes::OFFSET === $query->paginationType) {
