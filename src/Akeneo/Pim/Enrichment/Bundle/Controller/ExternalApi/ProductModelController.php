@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Akeneo\Pim\Enrichment\Bundle\Controller\ExternalApi;
 
 use Akeneo\Channel\Component\Model\ChannelInterface;
+use Akeneo\Pim\Enrichment\Component\Product\Connector\UseCase\ListProductModelsQuery;
+use Akeneo\Pim\Enrichment\Component\Product\Connector\UseCase\Validator\ListProductModelsQueryValidator;
 use Akeneo\Pim\Enrichment\Component\Product\Exception\InvalidOperatorException;
 use Akeneo\Pim\Enrichment\Component\Product\Exception\ObjectNotFoundException;
 use Akeneo\Pim\Enrichment\Component\Product\Exception\UnsupportedFilterException;
@@ -19,7 +21,6 @@ use Akeneo\Tool\Bundle\ApiBundle\Checker\QueryParametersCheckerInterface;
 use Akeneo\Tool\Bundle\ApiBundle\Documentation;
 use Akeneo\Tool\Bundle\ApiBundle\Stream\StreamResourceResponse;
 use Akeneo\Tool\Component\Api\Exception\DocumentedHttpException;
-use Akeneo\Tool\Component\Api\Exception\PaginationParametersException;
 use Akeneo\Tool\Component\Api\Exception\ViolationHttpException;
 use Akeneo\Tool\Component\Api\Pagination\PaginationTypes;
 use Akeneo\Tool\Component\Api\Pagination\PaginatorInterface;
@@ -108,6 +109,9 @@ class ProductModelController
     /** @var QueryParametersCheckerInterface */
     protected $queryParametersChecker;
 
+    /** @var ListProductModelsQueryValidator */
+    private $listProductModelsQueryValidator;
+
     public function __construct(
         ProductQueryBuilderFactoryInterface $pqbFactory,
         ProductQueryBuilderFactoryInterface $pqbFromSizeFactory,
@@ -127,27 +131,29 @@ class ProductModelController
         AttributeFilterInterface $productModelAttributeFilter,
         IdentifiableObjectRepositoryInterface $productModelRepository,
         StreamResourceResponse $partialUpdateStreamResource,
+        ListProductModelsQueryValidator $listProductModelsQueryValidator,
         array $apiConfiguration
     ) {
-        $this->pqbFactory                  = $pqbFactory;
-        $this->pqbFromSizeFactory          = $pqbFromSizeFactory;
-        $this->pqbSearchAfterFactory       = $pqbSearchAfterFactory;
-        $this->normalizer                  = $normalizer;
-        $this->channelRepository           = $channelRepository;
-        $this->queryParametersChecker      = $queryParametersChecker;
-        $this->parameterValidator          = $parameterValidator;
-        $this->offsetPaginator             = $offsetPaginator;
-        $this->searchAfterPaginator        = $searchAfterPaginator;
-        $this->primaryKeyEncrypter         = $primaryKeyEncrypter;
-        $this->updater                     = $updater;
-        $this->factory                     = $factory;
-        $this->saver                       = $saver;
-        $this->router                      = $router;
-        $this->productValidator            = $productValidator;
+        $this->pqbFactory = $pqbFactory;
+        $this->pqbFromSizeFactory = $pqbFromSizeFactory;
+        $this->pqbSearchAfterFactory = $pqbSearchAfterFactory;
+        $this->normalizer = $normalizer;
+        $this->channelRepository = $channelRepository;
+        $this->queryParametersChecker = $queryParametersChecker;
+        $this->parameterValidator = $parameterValidator;
+        $this->offsetPaginator  = $offsetPaginator;
+        $this->searchAfterPaginator = $searchAfterPaginator;
+        $this->primaryKeyEncrypter = $primaryKeyEncrypter;
+        $this->updater = $updater;
+        $this->factory = $factory;
+        $this->saver = $saver;
+        $this->router = $router;
+        $this->productValidator = $productValidator;
         $this->productModelAttributeFilter = $productModelAttributeFilter;
         $this->productModelRepository = $productModelRepository;
         $this->partialUpdateStreamResource = $partialUpdateStreamResource;
-        $this->apiConfiguration            = $apiConfiguration;
+        $this->listProductModelsQueryValidator = $listProductModelsQueryValidator;
+        $this->apiConfiguration = $apiConfiguration;
     }
 
     /**
@@ -234,11 +240,20 @@ class ProductModelController
      */
     public function listAction(Request $request): JsonResponse
     {
-        try {
-            $this->parameterValidator->validate($request->query->all(), ['support_search_after' => true]);
-        } catch (PaginationParametersException $e) {
-            throw new UnprocessableEntityHttpException($e->getMessage(), $e);
-        }
+        $query = new ListProductModelsQuery();
+
+        $query->paginationType = $request->query->get('pagination_type', PaginationTypes::OFFSET);
+        $query->page = $request->query->get('page', 1);
+        $query->limit = $request->query->get('limit', $this->apiConfiguration['pagination']['limit_by_default']);
+        $query->withCount = $request->query->get('with_count', 'false');
+
+        $this->listProductModelsQueryValidator->validate($query);
+
+//        try {
+//            $this->parameterValidator->validate($request->query->all(), ['support_search_after' => true]);
+//        } catch (PaginationParametersException $e) {
+//            throw new UnprocessableEntityHttpException($e->getMessage(), $e);
+//        }
 
         $channel = null;
         if ($request->query->has('scope')) {
